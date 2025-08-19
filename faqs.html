@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAQS - Sanli Motor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="branding">
+      <h1 class="brand">Sanli Motor</h1>
+      <p class="tagline">"provide the best service for consumers"</p>
+    </div>
+    <a href="index.html" class="btn-link">⬅︎ Beranda</a>
+  </div>
+  <div class="white-accent"></div>
+</header>
+
+<main class="container">
+  <section class="section">
+    <h2 class="section-title">FAQS</h2>
+    <div class="card rainbow">
+      <form id="faqForm" class="form">
+        <div class="form-row">
+          <label>Nama</label>
+          <input type="text" id="nama" placeholder="Nama Anda" required>
+        </div>
+        <div class="form-row">
+          <label>Pertanyaan</label>
+          <textarea id="pertanyaan" rows="3" placeholder="Tulis pertanyaan..." required></textarea>
+        </div>
+        <div class="form-actions left">
+          <button type="submit" class="btn">Kirim</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="faqList" class="comment-list">
+      <!-- Komentar muncul di sini -->
+    </div>
+  </section>
+</main>
+
+<footer class="footer compact">
+  <small>© <span id="year"></span> Sanli Motor</small>
+</footer>
+
+<script>
+  // Tahun footer
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Storage helpers
+  const STORAGE_KEY = 'sanli_faqs_v1';
+  const getData = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const setData = (arr) => localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+
+  // Render list
+  function renderList() {
+    const list = getData().sort((a,b)=>b.ts-a.ts);
+    const container = document.getElementById('faqList');
+    container.innerHTML = '';
+    list.forEach(item => {
+      const wrap = document.createElement('div');
+      wrap.className = 'comment-card';
+
+      wrap.innerHTML = `
+        <div class="comment-head">
+          <img src="https://cdn-icons-png.flaticon.com/512/565/565654.png" class="icon-28" alt="">
+          <strong>${item.nama}</strong>
+        </div>
+        <div class="comment-body">${item.pertanyaan}</div>
+        <div class="comment-actions">
+          <button class="btn-like" data-id="${item.id}">
+            <img src="https://cdn-icons-png.flaticon.com/512/126/126473.png" class="icon-20" alt="">
+            <span>Suka</span> <b>${item.like}</b>
+          </button>
+        </div>
+      `;
+      container.appendChild(wrap);
+    });
+  }
+
+  // Submit form
+  document.getElementById('faqForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nama = document.getElementById('nama').value.trim();
+    const pertanyaan = document.getElementById('pertanyaan').value.trim();
+    if (!nama || !pertanyaan) return;
+
+    const list = getData();
+    list.push({ id: crypto.randomUUID(), nama, pertanyaan, like: 0, ts: Date.now() });
+    setData(list);
+    e.target.reset();
+    renderList();
+  });
+
+  // Like handler
+  document.getElementById('faqList').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-like');
+    if (!btn) return;
+    const id = btn.getAttribute('data-id');
+    const list = getData();
+    const idx = list.findIndex(x=>x.id===id);
+    if (idx>-1) {
+      list[idx].like += 1;
+      setData(list);
+      renderList();
+    }
+  });
+
+  renderList();
+</script>
+</body>
+</html>
